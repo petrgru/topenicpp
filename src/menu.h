@@ -1,15 +1,15 @@
 //
-// Created by petrg on 25.1.17.
+// Created by petrg on 31.1.17.
 //
-#define DEBUG True
-#ifndef TOPENI_H
-#define TOPENI_H
-class Topeni {
+
+#ifndef MUJPRVNI_MENU_H
+#define MUJPRVNI_MENU_H
+class TopeniMenu {
 public:
     /**
      * A constructor.
      */
-    Topeni();
+    TopeniMenu();
 
     /**
      * A pure virtual member.
@@ -21,14 +21,17 @@ public:
      * A pure virtual member.
      * výchozí smyčka která se pořád opakuje
      */
+    virtual void loop(void);
 
 
 private:
 
     int loopCounter;
+    long previousMillis = 0;
+    long timeinmenu = 10000;
     /**
     * a private variable.
     * proměnná která zařizuje druh výpisu na Consoli
     */
 };
-#endif
+#endif //MUJPRVNI_MENU_H

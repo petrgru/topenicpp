@@ -3,16 +3,26 @@
 //
 
 #include <Arduino.h>
-#include "topeni.h"
+//#include "topeni.h"
+#include "menu.h"
+long previousMillis = 0;
+long interval = 1000;
 
-
-Topeni topeni;
+TopeniMenu menu;
 
 
 void setup() {
-    topeni.setup();
+    menu.setup();
+    Serial.println("setup");
 }
 
 void loop() {
-    topeni.loop();
+    unsigned long currentMillis = millis();
+    menu.loop();
+
+    if(currentMillis - previousMillis > interval) {
+        // save the last time you blinked the LED
+        previousMillis = currentMillis;
+        Serial.println("casovac");
+    }
 }
