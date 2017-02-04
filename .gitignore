@@ -1,3 +1,4 @@
+cmake*
 .pioenvs
 .piolibdeps
 CMakeListsPrivate.txt

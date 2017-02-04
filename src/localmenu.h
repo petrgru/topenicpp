@@ -4,6 +4,7 @@
 
 #ifndef MUJPRVNI_MENU_H
 #define MUJPRVNI_MENU_H
+extern int selprofil;
 class TopeniMenu {
 public:
     /**
@@ -27,8 +28,8 @@ public:
 private:
 
     int loopCounter;
-    long previousMillis = 0;
-    long timeinmenu = 10000;
+    unsigned long previousMillis = 0;
+    unsigned long timeinmenu = 10000;
     /**
     * a private variable.
     * proměnná která zařizuje druh výpisu na Consoli

@@ -1,17 +1,17 @@
 //
-// Created by petrg on 25.1.17.
+// Created by alarm on 2/4/17.
 //
-#define DEBUG True
-#ifndef TOPENI_H
-#define TOPENI_H
-extern int selprofil;
-class Topeni {
+
+#ifndef TOPENICPP_PROMINIEXTENDER_H
+#define TOPENICPP_PROMINIEXTENDER_H
+class prominiextender {
 public:
     /**
      * A constructor.
      */
-    Topeni();
+    prominiextender();
 
+    virtual void setup(void);
     /**
      * A pure virtual member.
      * metoda která nadstavý výchozí parametry programu.
@@ -31,5 +31,7 @@ private:
     * a private variable.
     * proměnná která zařizuje druh výpisu na Consoli
     */
+
+
 };
-#endif
+#endif //TOPENICPP_PROMINIEXTENDER_H

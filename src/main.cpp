@@ -3,26 +3,40 @@
 //
 
 #include <Arduino.h>
-//#include "topeni.h"
-#include "menu.h"
-long previousMillis = 0;
-long interval = 1000;
+#include <EEPROM.h>
+#include "main.h"
+#include "localmenu.h"
+#include "topeni.h"
+#include "prominiextender.h"
 
 TopeniMenu menu;
-
+Topeni topeni;
+prominiextender promini;
+void loadEEPROM() {
+    selprofil=EEPROM.read(0);
+    NormalTeplotaDay=EEPROM.read(1);
+    NormalTeplotaNight=EEPROM.read(2);
+    UtlumTeplota=EEPROM.read(3);
+}
 
 void setup() {
+    loadEEPROM();
+    Serial.println("Load EEPROM");
     menu.setup();
     Serial.println("setup");
+    promini.setup();
 }
 
 void loop() {
-    unsigned long currentMillis = millis();
+//    unsigned long currentMillis = millis();
     menu.loop();
+    topeni.loop();
+    promini.loop();
 
-    if(currentMillis - previousMillis > interval) {
+/*    if(currentMillis - previousMillis > interval) {
         // save the last time you blinked the LED
         previousMillis = currentMillis;
         Serial.println("casovac");
     }
+    */
 }

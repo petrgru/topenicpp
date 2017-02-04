@@ -1,22 +1,23 @@
 //
 // Created by petrg on 31.1.17.
 //
-
+#include <menu.h>//menu macros and objects
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>//F. Malpartida LCD's driver
-#include <menu.h>//menu macros and objects
 #include <menuLCDs.h>
 #include <menuFields.h>
 #include <quadEncoder.h>//quadrature encoder driver and fake stream
 #include <keyStream.h>//keyboard driver and fake stream (for the encoder button)
 #include <chainStream.h>// concatenate multiple input streams (this allows adding a button to the encoder)
-#include "menu.h"
+#include <EEPROM.h>
+#include "localmenu.h";
 // rotary encoder pins
 #define encA    2
 #define encB    3
 #define encBtn  4
 
 #define LEDPIN 13
+#define SPENDINMENU 10000
 
 //LiquidCrystal_I2C lcd(0x27);//, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
 LiquidCrystal_I2C lcd(0x26, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address and pinout
@@ -52,6 +53,7 @@ bool quit() {
     Serial.println("Quiting after action call");
     return true;
 }
+
 
 /////////////////////////////////////////////////////////////////////////
 // MENU DEFINITION
@@ -105,22 +107,42 @@ SUBMENU(setLed),
         FIELD(fps,"fps [","]",0,0,0,0),
         FIELD(counter,"counter [","]",0,0,0,0),
         OP("Exit",pauseMenu)
+);*/
+
+
+bool saveprofil(){
+    Serial.println(selprofil);
+    Serial.println(" uloz");
+    EEPROM.update(0,selprofil);
+    return false;
+}
+
+
+
+
+TOGGLE(selprofil,selProfil,"Select",
+       VALUE("Normal",0,saveprofil),
+       VALUE("Solar",1,saveprofil),
+       VALUE("Utlum",2,saveprofil)
 );
-*/
-int selprofil=0;
-SELECT(selprofil,selProfil,"Select",
-       VALUE("Normal",0),
-       VALUE("Solar",1),
-       VALUE("Utlum",2)
-);
+
+
 int selteploty;
-float NormalTeplotaDay;
-float NormalTeplotaNight;
-float UtlumTeplota;
+extern float NormalTeplotaDay;
+extern float NormalTeplotaNight;
+extern float UtlumTeplota;
+bool saveteplota(){
+    Serial.println(NormalTeplotaDay);
+    EEPROM.update(1,NormalTeplotaDay);
+    EEPROM.update(2,NormalTeplotaNight);
+    EEPROM.update(3,UtlumTeplota);
+    return false;
+}
+
 MENU(selTeplota,"Teploty",
-     FIELD(NormalTeplotaDay,"NormalDay","C",0,22,10,1),
-     FIELD(NormalTeplotaNight,"NormalNight","C",0,22,10,1),
-     FIELD(UtlumTeplota,"Utlum","C",0,22,10,1)
+     FIELD(NormalTeplotaDay,  "NormalDay  ","C",0,23,10,0,saveteplota),
+     FIELD(NormalTeplotaNight,"NormalNight","C",0,23,10,0,saveteplota),
+     FIELD(UtlumTeplota,      "Utlum      ","C",0,23,10,0,saveteplota)
      );
 
 MENU(mainMenu,"Main menu",
@@ -164,6 +186,7 @@ chainStream<3> allIn(in3);
 
 //describing a menu output, alternatives so far are Serial or LiquidCrystal LCD
 menuLCD menu_lcd(lcd,20,4);//menu output device
+
 TopeniMenu::TopeniMenu() {
     // button
     loopCounter = 1;
@@ -187,22 +210,30 @@ void TopeniMenu::setup() {
 }
 void TopeniMenu::loop() {
     unsigned long currentMillis = millis();
+    char ch;
     if (runMenu) {
         mainMenu.poll(menu_lcd,allIn);
     }
-    else if (allIn.read()==menu::enterCode) {
-        runMenu=true;
+    else if (allIn.available())
+    {
+        ch=allIn.read();
+        Serial.println(ch);
+        previousMillis=currentMillis;
+        if (ch==menu::enterCode) {
+            runMenu=true;
+        }
     }
     else scrSaver();
-    if (allIn.read()) previousMillis=currentMillis;
-    if (runMenu && (currentMillis - previousMillis > timeinmenu)) {
+//    if (allIn.read()) previousMillis=currentMillis;
+/*    if (runMenu && (currentMillis - previousMillis > SPENDINMENU)) {
         previousMillis = currentMillis;
         pauseMenu();
         menu_lcd.redraw();
     }
-
+*/
     //simulate the delay of your program... if this number rises too much the menu will have bad navigation experience
     //if so, then the menu can be wired into a timmer... leaving the shorter end to your code while it is running
+    //if (allIn.available()) {Serial.println("Key");}
     counter=millis()/1000%60;
     int d=micros()-lastFpsChk;
     if (d>0) {
