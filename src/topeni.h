@@ -5,6 +5,8 @@
 #ifndef TOPENI_H
 #define TOPENI_H
 extern int selprofil;
+extern float FloarTemp;
+extern float AirTemp;
 class Topeni {
 public:
     /**

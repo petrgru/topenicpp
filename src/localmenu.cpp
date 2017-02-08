@@ -6,6 +6,7 @@
 #include <LiquidCrystal_I2C.h>//F. Malpartida LCD's driver
 #include <menuLCDs.h>
 #include <menuFields.h>
+#include <menuPrint.h>
 #include <quadEncoder.h>//quadrature encoder driver and fake stream
 #include <keyStream.h>//keyboard driver and fake stream (for the encoder button)
 #include <chainStream.h>// concatenate multiple input streams (this allows adding a button to the encoder)
@@ -122,8 +123,8 @@ bool saveprofil(){
 
 TOGGLE(selprofil,selProfil,"Select",
        VALUE("Normal",0,saveprofil),
-       VALUE("Solar",1,saveprofil),
-       VALUE("Utlum",2,saveprofil)
+       VALUE("Solar ",1,saveprofil),
+       VALUE("Utlum ",2,saveprofil)
 );
 
 
@@ -186,6 +187,13 @@ chainStream<3> allIn(in3);
 
 //describing a menu output, alternatives so far are Serial or LiquidCrystal LCD
 menuLCD menu_lcd(lcd,20,4);//menu output device
+menuPrint menu_out_ser(Serial);
+
+
+Stream* out2[]={&menu_lcd,&hmenu_out_ser};
+chainStream<2> allout(out2);
+
+
 
 TopeniMenu::TopeniMenu() {
     // button
@@ -212,7 +220,7 @@ void TopeniMenu::loop() {
     unsigned long currentMillis = millis();
     char ch;
     if (runMenu) {
-        mainMenu.poll(menu_lcd,allIn);
+        mainMenu.poll(allout,allIn);
     }
     else if (allIn.available())
     {

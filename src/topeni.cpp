@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include "topeni.h"
-#define INTERVAL 60000;
+#define ABLA 60000;
 float previousMillis=0;
 long interval = 60000;
 
