@@ -11,18 +11,26 @@
 #include <keyStream.h>//keyboard driver and fake stream (for the encoder button)
 #include <chainStream.h>// concatenate multiple input streams (this allows adding a button to the encoder)
 #include <EEPROM.h>
+#include <SPI.h>
+#include <Ethernet.h>;
 #include "localmenu.h";
+
+byte macAddress[6] = {
+        0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
+};
 // rotary encoder pins
 #define encA    2
 #define encB    3
 #define encBtn  4
 
 #define LEDPIN 13
-#define SPENDINMENU 10000
+#define SPENDINMENU 3000
 
 //LiquidCrystal_I2C lcd(0x27);//, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
 LiquidCrystal_I2C lcd(0x26, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address and pinout
-
+extern float sensorExterier=0;
+extern float sensorInterier=0;
+extern float sensorFloor=0;
 //aux vars
 int ledCtrl=0;
 bool runMenu=false;
@@ -34,10 +42,8 @@ int counter=0;
 
 ///////////////////////////////////////////////////////////////////////////
 //functions to wire as menu actions
-bool pauseMenu() {
-    runMenu=false;
-    scrSaverEnter=true;
-}
+
+
 bool ledOn() {
     Serial.println("set led on!");
     digitalWrite(LEDPIN,ledCtrl=1);
@@ -140,18 +146,28 @@ bool saveteplota(){
     return false;
 }
 
-MENU(selTeplota,"Teploty",
-     FIELD(NormalTeplotaDay,  "NormalDay  ","C",0,23,10,0,saveteplota),
-     FIELD(NormalTeplotaNight,"NormalNight","C",0,23,10,0,saveteplota),
-     FIELD(UtlumTeplota,      "Utlum      ","C",0,23,10,0,saveteplota)
-     );
 
-MENU(mainMenu,"Main menu",
-     SUBMENU(selProfil),
-     SUBMENU(selTeplota),
-     OP("Exit",pauseMenu)
-);
 
+
+//the quadEncoder
+#define ENC_SENSIVITY 4
+quadEncoder quadEncoder(encA,encB);//simple quad encoder driver
+quadEncoderStream enc(quadEncoder,ENC_SENSIVITY);// simple quad encoder fake Stream
+
+//a keyboard with only one key :D, this is the encoder button
+keyMap encBtn_map[]={{-encBtn,menu::enterCode}};//negative pin numbers means we have a pull-up, this is on when low
+keyLook<1> encButton(encBtn_map);
+
+//alternative to previous but now we can input from Serial too...
+Stream* in3[]={&enc,&encButton,&Serial};
+chainStream<3> allIn(in3);
+
+EthernetServer server(23);
+
+//describing a menu output, alternatives so far are Serial or LiquidCrystal LCD
+menuLCD menu_lcd(lcd,20,4);//menu output device
+menuPrint menu_out_ser(Serial);
+menuPrint menu_out_net(server);
 
 void scrSaver() {
     if (scrSaverEnter) {
@@ -168,32 +184,32 @@ void scrSaver() {
         }
         lcd.setCursor(0,1);
         lcd.print("-------");
-        scrSaverEnter=false;
+//        scrSaverEnter=false;
+        menu_lcd.redraw();
     }
 }
-
-//the quadEncoder
-#define ENC_SENSIVITY 4
-quadEncoder quadEncoder(encA,encB);//simple quad encoder driver
-quadEncoderStream enc(quadEncoder,ENC_SENSIVITY);// simple quad encoder fake Stream
-
-//a keyboard with only one key :D, this is the encoder button
-keyMap encBtn_map[]={{-encBtn,menu::enterCode}};//negative pin numbers means we have a pull-up, this is on when low
-keyLook<1> encButton(encBtn_map);
-
-//alternative to previous but now we can input from Serial too...
-Stream* in3[]={&enc,&encButton,&Serial};
-chainStream<3> allIn(in3);
-
-//describing a menu output, alternatives so far are Serial or LiquidCrystal LCD
-menuLCD menu_lcd(lcd,20,4);//menu output device
-menuPrint menu_out_ser(Serial);
+bool pauseMenu() {
+    runMenu = false;
+    scrSaverEnter = true;
+    scrSaver();
+}
 
 
-Stream* out2[]={&menu_lcd,&hmenu_out_ser};
-chainStream<2> allout(out2);
+MENU(selTeplota,"Teploty",
+     FIELD(NormalTeplotaDay,  "NormalDay  ","C",0,23,10,0,saveteplota),
+     FIELD(NormalTeplotaNight,"NormalNight","C",0,23,10,0,saveteplota),
+     FIELD(UtlumTeplota,      "Utlum      ","C",0,23,10,0,saveteplota),
+     FIELD(sensorInterier,    "Uvnitr     "," C"),
+     FIELD(sensorExterier,    "Venku      "," C"),
+     FIELD(sensorFloor,       "Podlaha    "," C"),
+     OP("Exit",mainMenu)
+);
 
-
+MENU(mainMenu,"Main menu",
+     SUBMENU(selProfil),
+     SUBMENU(selTeplota),
+     OP("Exit",pauseMenu)
+);
 
 TopeniMenu::TopeniMenu() {
     // button
@@ -213,29 +229,45 @@ void TopeniMenu::setup() {
     lcd.begin(20,4);
     lcd.home();
     menu::wrapMenus=true;
+    mainMenu.data[0]->enabled=false;
     mainMenu[7].disable();
     mainMenu[8].disable();
+    if (Ethernet.begin(macAddress))
+        Serial.println(Ethernet.localIP());
+    else
+        Serial.println("failed");
+    server.begin();
+    Serial.println("Server started");
 }
 void TopeniMenu::loop() {
     unsigned long currentMillis = millis();
     char ch;
+    Ethernet.maintain();
+    EthernetClient client = server.available();
+    if (client.connected()){
+        mainMenu.poll(menu_out_net,client);
+    }
     if (runMenu) {
-        mainMenu.poll(allout,allIn);
+        mainMenu.poll(menu_lcd,allIn);
+        mainMenu.poll(menu_out_ser,Serial);
     }
     else if (allIn.available())
     {
         ch=allIn.read();
-        Serial.println(ch);
-        previousMillis=currentMillis;
         if (ch==menu::enterCode) {
             runMenu=true;
         }
     }
-    else scrSaver();
+    else {
+        scrSaverEnter=true;
+        runMenu=false;
+        scrSaver();
+    }
 //    if (allIn.read()) previousMillis=currentMillis;
-/*    if (runMenu && (currentMillis - previousMillis > SPENDINMENU)) {
+/*    if ((currentMillis - previousMillis > SPENDINMENU)) {
         previousMillis = currentMillis;
-        pauseMenu();
+        //pauseMenu();
+        scrSaver();
         menu_lcd.redraw();
     }
 */

@@ -8,6 +8,8 @@
 #include "localmenu.h"
 #include "topeni.h"
 #include "prominiextender.h"
+#define INTERVAL 10000
+float previousMillis;
 
 TopeniMenu menu;
 Topeni topeni;
@@ -25,18 +27,20 @@ void setup() {
     menu.setup();
     Serial.println("setup");
     promini.setup();
+    topeni.setup();
 }
 
 void loop() {
-//    unsigned long currentMillis = millis();
+    float currentMillis = millis();
     menu.loop();
     topeni.loop();
     promini.loop();
 
-/*    if(currentMillis - previousMillis > interval) {
+    if(currentMillis - previousMillis > INTERVAL) {
         // save the last time you blinked the LED
         previousMillis = currentMillis;
         Serial.println("casovac");
+        Serial.println(sensorInterier);
     }
-    */
+
 }

@@ -23,6 +23,7 @@ public:
      * výchozí smyčka která se pořád opakuje
      */
     virtual void loop(void);
+//    virtual  void scrSaver(void);
 
 
 private:

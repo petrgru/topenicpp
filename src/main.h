@@ -8,6 +8,7 @@ int selprofil=0;
 float NormalTeplotaDay=18;
 float NormalTeplotaNight=16;
 float UtlumTeplota=5;
-float FloorTemp;
-float AirTemp;
+float sensorExterier=0;
+float sensorInterier=0;
+float sensorFloor=0;
 #endif //TOPENICPP_MAIN_H

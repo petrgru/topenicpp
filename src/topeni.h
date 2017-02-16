@@ -5,8 +5,9 @@
 #ifndef TOPENI_H
 #define TOPENI_H
 extern int selprofil;
-extern float FloarTemp;
-extern float AirTemp;
+extern float sensorExterier;
+extern float sensorInterier;
+extern float sensorFloor;
 class Topeni {
 public:
     /**
@@ -18,6 +19,8 @@ public:
      * A pure virtual member.
      * metoda která nadstavý výchozí parametry programu.
      */
+     virtual int isTimer(void);
+    virtual void setup(void);
     virtual void loop(void);
 
     /**
@@ -29,6 +32,9 @@ public:
 private:
 
     int loopCounter;
+    float currentMillis = millis();
+    float previousMillis=0;
+    long interval = 60000;
     /**
     * a private variable.
     * proměnná která zařizuje druh výpisu na Consoli
