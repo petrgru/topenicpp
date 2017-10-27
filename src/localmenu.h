@@ -4,7 +4,19 @@
 
 #ifndef MUJPRVNI_MENU_H
 #define MUJPRVNI_MENU_H
+
+#include <TimeLib.h>
 extern int selprofil;
+extern float sensorExterier;
+extern float sensorInterier;
+extern float sensorFloor;
+extern float NormalTeplotaDay;
+extern float NormalTeplotaNight;
+extern float UtlumTeplota;
+extern float MaxFloorTeplota;
+extern boolean fstate[3];
+extern time_t local;
+
 class TopeniMenu {
 public:
     /**

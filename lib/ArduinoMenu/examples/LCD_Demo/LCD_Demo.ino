@@ -206,5 +206,18 @@ void loop() {
     fps=1000000.0/d;
     lastFpsChk+=d;
   }
-  delay(50);
+  //delay(50);
+  if (!digitalRead(SEL_BTN)) {
+    delay(SOFT_DEBOUNCE_MS);
+    while(!digitalRead(SEL_BTN));
+    nav.doNav(enterCmd);
+    delay(SOFT_DEBOUNCE_MS);
+  }
+  if (!digitalRead(NAV_BTN)) {
+    delay(SOFT_DEBOUNCE_MS);
+    while(!digitalRead(NAV_BTN));//wait for button release
+    nav.doNav(upCmd);
+    delay(SOFT_DEBOUNCE_MS);
+  }
+
 }
