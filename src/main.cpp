@@ -11,6 +11,7 @@
 #include "topeni.h"
 #include "prominiextender.h"
 #include "pingwatchdog.h"
+#include "mqtt.h"
 #define INTERVAL 10000
 #define INTERVAL_SEPNUTI 500
 
@@ -21,6 +22,7 @@ Topeni topeni;
 prominiextender promini;
 Ntp_client ntpc;
 ping_watchdog pingac;
+Mqtt mqttprocess;
 
 void loadEEPROM() {
     selprofil=EEPROM.read(0);
@@ -52,16 +54,17 @@ void setup() {
     Serial.println("setup");
     promini.setup();
     topeni.setup();
+    mqttprocess.setup();
 //    pingac.setup();
     wdt_enable(WDTO_8S);
 }
 void loop() {
-    float currentMillis = millis();
     wdt_reset();
     menu.loop();
     ntpc.loop();
     topeni.loop();
     promini.loop();
+    mqttprocess.loop();
   //  pingac.loop();
 
 

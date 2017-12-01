@@ -4,6 +4,7 @@
 
 #ifndef TOPENICPP_MAIN_H
 #define TOPENICPP_MAIN_H
+
 int selprofil=0;
 float NormalTeplotaDay=18;
 float NormalTeplotaNight=16;

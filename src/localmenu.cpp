@@ -400,6 +400,7 @@ void TopeniMenu::setup() {
         Serial.println(Ethernet.localIP());
     else
         Serial.println("failed");
+
     server.begin();
     Serial.println("Server started");
     lcd.createChar(1, fullfill);
